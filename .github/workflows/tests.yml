@@ -8,12 +8,12 @@ on:
 
 jobs:
   build:
-
-    name: Burrito Build Tests
+    name: build
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Elixir
       uses: erlef/setup-elixir@885971a72ed1f9240973bd92ab57af8c1aa68f24
       with:
@@ -36,3 +36,76 @@ jobs:
         cd example
         mix deps.get
         mix release
+
+    - name: Upload Linux Binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux-bin
+        path: example/burrito_out/example_cli_app_native
+
+    - name: Upload Window Binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows-bin
+        path: example/burrito_out/example_cli_app_win64.exe
+
+    - name: Upload MacOS Binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: drawin-bin
+        path: example/burrito_out/example_cli_app_darwin
+
+  test-windows:
+    needs: build
+    name: run-windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download
+      uses: actions/download-artifact@v2
+      with:
+        name: windows-bin
+
+    - name: Test Run
+      run: |
+        ./example_cli_app_win64.exe
+
+  test-macos:
+    needs: build
+    name: run-macos
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download
+      uses: actions/download-artifact@v2
+      with:
+        name: drawin-bin
+
+    - name: Test Run
+      run: |
+        ls -la
+        chmod +x example_cli_app_darwin
+        ./example_cli_app_darwin
+
+  test-linux:
+    needs: build
+    name: run-linux
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download
+      uses: actions/download-artifact@v2
+      with:
+        name: linux-bin
+
+    - name: Test Run
+      run: |
+        ls -la
+        chmod +x example_cli_app_linux
+        ./example_cli_app_native
